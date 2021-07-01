@@ -6,4 +6,8 @@ class SoundSource(SoundElement):
         super().__init__(sample_rate)
 
     def emit_sound(self):
-        return self.samples.popleft()
+        # If we run out of samples, emit 0.0
+        try:
+            return self.samples.popleft()
+        except IndexError:
+            return 0.0

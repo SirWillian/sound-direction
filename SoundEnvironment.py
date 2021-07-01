@@ -24,14 +24,14 @@ class SoundEnvironment:
 
     def run_simulation(self) -> None:
         # How many samples are we simulating?
-        # Up to the minimum between max_samples and the lowest sample count among all sources
-        # If no sources have a limit and max_samples wasn't set, simulate indefinitely
-        # TODO: implement max_samples check
-        samples_to_simulate = -1
-        source_sample_counts = [source.get_sample_count()
-                                for source in self.sources if source.get_sample_count != -1]
-        if len(source_sample_counts) != 0:
-            samples_to_simulate = min(source_sample_counts)
+        # Up to the minimum between max_samples and the highest sample count among all sources
+        samples_to_simulate = self.max_samples
+        source_sample_counts = [source.get_sample_count() for source in self.sources]
+        if len(source_sample_counts) != 0 and samples_to_simulate == -1:
+            samples_to_simulate = max(source_sample_counts)
+        # If no sources have a limit and max_samples wasn't set, don't simulate
+        if samples_to_simulate == -1:
+            return
 
         # Construct a queue for the sounds emitted by sources and when they should hit each microphone
         SampleListElement = namedtuple('SampleListElement', ['value', 'time'])
