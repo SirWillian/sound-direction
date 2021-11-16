@@ -6,6 +6,7 @@ class SineWaveSoundSource(GeneratorSoundSource):
     def __init__(self, sample_rate, amplitude, frequency, phase_delay=0.0):
         self.amplitude = amplitude
         self.frequency = frequency
+        # TODO: fazer delay usando tempo e não radianos
         self.phase_delay = phase_delay
 
         def generator_function(x):

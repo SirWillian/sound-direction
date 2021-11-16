@@ -1,5 +1,8 @@
+import math
 from collections import namedtuple
 from typing import Dict, List
+
+import numpy as np
 
 from Microphone import Microphone
 from SoundSource import SoundSource
@@ -9,12 +12,14 @@ class SoundEnvironment:
     sources: List[SoundSource]
     microphones: List[Microphone]
 
-    def __init__(self, sample_rate=44100, max_samples=-1) -> None:
+    def __init__(self, sample_rate=44100, max_samples=-1, speed_of_sound = 343, decay_rate = 0.5) -> None:
         self.sources = []
         self.microphones = []
         self.sample_rate = sample_rate
         self.simulated_samples = 0
         self.max_samples = max_samples
+        self.speed_of_sound = speed_of_sound
+        self.decay_rate = decay_rate
 
     def add_source(self, source: SoundSource) -> None:
         self.sources.append(source)
@@ -38,22 +43,26 @@ class SoundEnvironment:
         emitted_sample_list: Dict[Microphone, List[SampleListElement]]
         emitted_sample_list = {m: list() for m in self.microphones}
 
-        # Delay will be a function of the distance between the source and the microphone
-        def calculate_delay(source, microphone):
-            return 0
+        # Delay (number of samples rounded up) will be a function of the distance between the source and the microphone
+        def calculate_delay(source: SoundSource, microphone: Microphone):
+            return math.ceil((np.linalg.norm(source.position - microphone.position) / self.speed_of_sound) * self.sample_rate)
 
-        # No decay yet
+        # Exponential decay
         def apply_decay(sample, source, microphone):
-            return sample
+            return sample * (math.e ** (-self.decay_rate * np.linalg.norm(source.position - microphone.position)))
 
         # Start simulating
         while self.simulated_samples != samples_to_simulate:
+            # if self.simulated_samples % 100 == 0:
+            #     print(self.simulated_samples)
             # Emit a sample for each source and queue their arrival on each microphone
             for source in self.sources:
                 source_sample = source.emit_sound()
+                #print(source_sample)
                 for mic in self.microphones:
                     decayed_sample = apply_decay(source_sample, source, mic)
                     sample_toa = self.simulated_samples + calculate_delay(source, mic)
+                    #print(decayed_sample, sample_toa)
                     emitted_sample_list[mic].append(SampleListElement(decayed_sample, sample_toa))
 
             # Check which samples should arrive at the microphone now
@@ -64,6 +73,7 @@ class SoundEnvironment:
                 # TODO: figure out correct way of adding samples together
                 combined_samples = sum(map(lambda x: x.value, arriving_samples))
                 # Clip value to the [-1, 1] range
+                # TODO: test with and without clipping
                 combined_samples = min(max(combined_samples, -1.0), 1.0)
                 mic.add_sample(combined_samples)
                 # Clean list

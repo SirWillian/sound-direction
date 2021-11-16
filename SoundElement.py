@@ -1,13 +1,16 @@
 from collections import deque
 from typing import Deque, Tuple
 
+from numpy import array, float32
+from numpy.typing import NDArray
+
 
 class SoundElement:
-    position: Tuple[float, float, float]
+    position: NDArray[float32]
     samples: Deque[float]
 
     def __init__(self, sample_rate=44100):
-        self.position = (0.0, 0.0, 0.0)
+        self.position = array([0.0, 0.0, 0.0])
         self.samples = deque()
         self.sample_rate = sample_rate
 
