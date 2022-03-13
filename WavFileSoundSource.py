@@ -7,6 +7,7 @@ from SoundSource import SoundSource
 
 class WavFileSoundSource(SoundSource):
     def __init__(self, filename):
+        #TODO: interp sample rate to the desired sample rate
         sample_rate, samples = wavfile.read(filename)
         super().__init__(sample_rate=sample_rate)
         # figure out the input range to remap to the [-1,1] range (if needed)

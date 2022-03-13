@@ -1,5 +1,4 @@
 import math
-from collections import namedtuple
 from typing import Dict, List
 
 import numpy as np
@@ -39,9 +38,8 @@ class SoundEnvironment:
             return
 
         # Construct a queue for the sounds emitted by sources and when they should hit each microphone
-        SampleListElement = namedtuple('SampleListElement', ['value', 'time'])
-        emitted_sample_list: Dict[Microphone, List[SampleListElement]]
-        emitted_sample_list = {m: list() for m in self.microphones}
+        emitted_sample_list: Dict[Microphone, Dict[int,List[float]]]
+        emitted_sample_list = {m: dict() for m in self.microphones}
 
         # Delay (number of samples rounded up) will be a function of the distance between the source and the microphone
         def calculate_delay(source: SoundSource, microphone: Microphone):
@@ -63,20 +61,22 @@ class SoundEnvironment:
                     decayed_sample = apply_decay(source_sample, source, mic)
                     sample_toa = self.simulated_samples + calculate_delay(source, mic)
                     #print(decayed_sample, sample_toa)
-                    emitted_sample_list[mic].append(SampleListElement(decayed_sample, sample_toa))
+                    try:
+                        emitted_sample_list[mic][sample_toa].append(decayed_sample)
+                    except KeyError:
+                        # sample_toa key hasn't been added yet. create it now
+                        emitted_sample_list[mic][sample_toa] = list()
+                        emitted_sample_list[mic][sample_toa].append(decayed_sample)
 
             # Check which samples should arrive at the microphone now
             for mic in self.microphones:
                 # Sum all samples that are supposed to arrive at this microphone at this time
-                arriving_samples = [sle for sle in emitted_sample_list[mic]
-                                    if sle.time == self.simulated_samples]
+                # Popping the key from the dict already cleans these samples from the list
+                arriving_samples = emitted_sample_list[mic].pop(self.simulated_samples, [])
                 # TODO: figure out correct way of adding samples together
-                combined_samples = sum(map(lambda x: x.value, arriving_samples))
+                combined_samples = sum(arriving_samples)
                 # Clip value to the [-1, 1] range
                 # TODO: test with and without clipping
                 combined_samples = min(max(combined_samples, -1.0), 1.0)
                 mic.add_sample(combined_samples)
-                # Clean list
-                for sample in arriving_samples:
-                    emitted_sample_list[mic].remove(sample)
             self.simulated_samples += 1
