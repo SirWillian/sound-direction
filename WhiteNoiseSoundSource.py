@@ -7,5 +7,5 @@ class WhiteNoiseSoundSource(GeneratorSoundSource):
         self.amplitude = amplitude
 
         def generator_function(x):
-            return self.amplitude * np.random.random_sample()
+            return self.amplitude * (2 * np.random.random_sample() - 1)
         super().__init__(sample_rate, generator_function=generator_function)
