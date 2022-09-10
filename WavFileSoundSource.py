@@ -2,11 +2,13 @@ from collections import deque
 
 import numpy as np
 from scipy.io import wavfile
+
 from SoundSource import SoundSource
 
 
 class WavFileSoundSource(SoundSource):
     def __init__(self, filename):
+        self.__filename = filename
         #TODO: interp sample rate to the desired sample rate
         sample_rate, samples = wavfile.read(filename)
         super().__init__(sample_rate=sample_rate)
@@ -23,3 +25,6 @@ class WavFileSoundSource(SoundSource):
             input_range_min = np.iinfo(samples.dtype).min
             self.samples = deque(
                 [(((np.mean(sample)-input_range_min)*remap_factor) - 1.0) for sample in samples])
+
+    def __repr__(self) -> str:
+        return 'WavFileSoundSource(' + self.__filename + ')'
