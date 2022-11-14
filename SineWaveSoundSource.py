@@ -1,4 +1,5 @@
 import numpy as np
+
 from GeneratorSoundSource import GeneratorSoundSource
 
 
@@ -10,9 +11,7 @@ class SineWaveSoundSource(GeneratorSoundSource):
         self.phase_delay = phase_delay
 
         def generator_function(x):
-            # TODO: For an array, i'd use .astype(np.float32). Not sure how to enforce that for a single sound
-            return self.amplitude*np.sin(2*np.pi *
-                                         self.frequency*x/self.sample_rate + self.phase_delay)
+            return np.float32(self.amplitude*np.sin(2*np.pi * self.frequency * x / self.sample_rate + self.phase_delay))
         super().__init__(sample_rate, generator_function=generator_function)
 
     def __repr__(self) -> str:
