@@ -30,15 +30,15 @@ source_dist = 5  # meters
 source_dirs = [45, 46, 47, 48, 49, 50, 51, 52, 53] # degrees
 amplitude = 0.1
 snr = 20
-mic_tri_sides = [0.01, 0.05, 0.1, 0.15, 0.2] # meters
+mic_tri_sides = [0.01, 0.05, 0.1, 0.15, 0.2, 0.3] # meters
 
 ## Source setup
-sources = [("pure", "1000Hz"),("sample", "glass-10khz")]
+sources = [("pure", "2000Hz"),("pure", "5000Hz"),("sample", "glass-10khz"),("sample", "branches-10khz")]
 
 # Test for each source and direction
 for src, mic_tri_side, source_dir in itertools.product(sources, mic_tri_sides, source_dirs):
     src_type, sound_name = src # unpack tuple
-    for i in range(4):
+    for i in range(3):
         # Reload source every test
         if src_type == "pure":
             freq = int(sound_name[:-2])
@@ -49,17 +49,16 @@ for src, mic_tri_side, source_dir in itertools.product(sources, mic_tri_sides, s
             sound_source = load_sample(sound_name)
             src_amplitude = abs(max(sound_source.samples, key=abs))
             sim_samples = len(sound_source.samples)
-        expected_signal = src_amplitude * (math.e ** (-decay_rate * source_dist))
-        noise_amplitude = math.sqrt(expected_signal**2/(10**(snr/20)))
-        noise_source = WhiteNoiseSoundSource(sample_rate, noise_amplitude)
+        #expected_signal = src_amplitude * (math.e ** (-decay_rate * source_dist))
+        #noise_amplitude = math.sqrt(expected_signal**2/(10**(snr/20)))
         print(''); print(f'{repr(sound_source)} attempt {i} {source_dist}m white noise {snr}dB {source_dir}deg {mic_tri_side}m tri side')
 
         # Microphone setup (equilateral)
-        mic1 = NoisyMicrophone(noise_source, sample_rate)
+        mic1 = NoisyMicrophone(WhiteNoiseSoundSource(sample_rate), sample_rate, snr)
         mic1.position[0]=mic_tri_side/2
-        mic2 = NoisyMicrophone(noise_source, sample_rate)
+        mic2 = NoisyMicrophone(WhiteNoiseSoundSource(sample_rate), sample_rate, snr)
         mic2.position[0]=-mic_tri_side/2
-        mic3 = NoisyMicrophone(noise_source, sample_rate)
+        mic3 = NoisyMicrophone(WhiteNoiseSoundSource(sample_rate), sample_rate, snr)
         mic3.position[1]=mic_tri_side*sqrt(3)/2
         #mic4 = Microphone(sample_rate)
 

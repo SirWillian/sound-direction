@@ -1,3 +1,4 @@
+import cProfile
 import itertools
 import math
 import os
@@ -7,7 +8,7 @@ from math import cos, radians, sin, sqrt
 from typing import List, Tuple
 
 from test_utils import (create_test_writer, get_test_name, load_sample,
-                        save_wav_samples)
+                        save_wav_samples, create_noise_source)
 
 project_root_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), '..')
 if __name__ == '__main__':
@@ -39,35 +40,41 @@ source_dirs = [47]
 
 ## Source and noise setup
 sample_names = ["branches-10khz", "glass-10khz", "gymball-10khz"]
+#sample_names = ["gymball-10khz"]
 source_noise_pairs: List[Tuple[float, str, str, float, SoundSource]]
 source_noise_pairs = []
 for name in sample_names:
     src = load_sample(name)
-    for snr in [-20, 0, 20, 40, 60]: #snr in db
-        # calculate decay on so the noise is created accordingly
+    for snr in [-60, -40, -20, 0, 20, 40, 60]: #snr in db
+    #for snr in [-40]: #snr in db for gymball exclusive test
+        # calculate decay so the noise is created accordingly
         amplitude = abs(max(src.samples, key=abs))
-        expected_signal = amplitude * (math.e ** (-decay_rate * source_dist))
-        noise_amplitude = math.sqrt(expected_signal**2/(10**(snr/20)))
-        print(f'{os.path.basename(src.filepath)} {snr} src amp {amplitude} expected signal {expected_signal} noise amp {noise_amplitude}')
-        source_noise_pairs.append((snr, "white", name, amplitude, WhiteNoiseSoundSource(sample_rate, noise_amplitude)))
-        source_noise_pairs.append((snr, "pink", name, amplitude, PowerLawNoiseSoundSource(sample_rate, 1, noise_amplitude)))
+        # amplitude = sqrt(np.mean(np.square(src.samples)))
+        # expected_signal = amplitude * (math.e ** (-decay_rate * source_dist))
+        # noise_amplitude = math.sqrt(expected_signal**2/(10**(snr/20)))
+        # print(f'{os.path.basename(src.filepath)} {snr} src amp {amplitude} expected signal {expected_signal} noise amp {noise_amplitude}')
+        # source_noise_pairs.append((snr, "white", name, amplitude, WhiteNoiseSoundSource(sample_rate, noise_amplitude)))
+        # source_noise_pairs.append((snr, "pink", name, amplitude, PowerLawNoiseSoundSource(sample_rate, 1, noise_amplitude)))
+        source_noise_pairs.append((snr, "white", name, amplitude))
+        source_noise_pairs.append((snr, "pink", name, amplitude))
 
 # Test for each sample, noise source and direction
 # Repeating 4 times to accomodate for noise randomness
 for sound_noise, dir in itertools.product(source_noise_pairs, source_dirs):
     for i in range(4):
-        snr, noise_type, sample_name, src_amplitude, noise_source = sound_noise # unpack tuple
+        snr, noise_type, sample_name, src_amplitude = sound_noise # unpack tuple
         # Reload sample every test
         sound_source = load_sample(sample_name)
+        sim_samples = len(sound_source.samples)
         print(''); print(f'{repr(sound_source)} attempt {i} {source_dist}m {noise_type} noise {snr}dB {dir}deg')
 
-        # Microphone setup (equilateral, 10cm side, no noise)
+        # Microphone setup (equilateral, 10cm side)
         mic_tri_side = 0.1
-        mic1 = NoisyMicrophone(noise_source, sample_rate)
+        mic1 = NoisyMicrophone(create_noise_source(noise_type, sample_rate), sample_rate, snr, 0.125)
         mic1.position[0]=mic_tri_side/2
-        mic2 = NoisyMicrophone(noise_source, sample_rate)
+        mic2 = NoisyMicrophone(create_noise_source(noise_type, sample_rate), sample_rate, snr, 0.125)
         mic2.position[0]=-mic_tri_side/2
-        mic3 = NoisyMicrophone(noise_source, sample_rate)
+        mic3 = NoisyMicrophone(create_noise_source(noise_type, sample_rate), sample_rate, snr, 0.125)
         mic3.position[1]=mic_tri_side*sqrt(3)/2
         #mic4 = Microphone(sample_rate)
 
@@ -81,13 +88,14 @@ for sound_noise, dir in itertools.product(source_noise_pairs, source_dirs):
         # Add sources and microphones to the simulation environment and run simulation
         sound_source.position[0] = source_dist * cos(radians(dir))
         sound_source.position[1] = source_dist * sin(radians(dir))
-        env = SoundEnvironment(sample_rate, int(sim_duration*sample_rate), decay_rate=decay_rate)
+        env = SoundEnvironment(sample_rate, sim_samples, decay_rate=decay_rate)
         env.add_microphone(mic1)
         env.add_microphone(mic2)
         env.add_microphone(mic3)
         env.add_source(sound_source)
 
         sim_start = time.time()
+        #cProfile.run("env.run_simulation()", sort='cumtime')
         env.run_simulation()
         sim_end = time.time()
         sim_real_time = sim_end - sim_start

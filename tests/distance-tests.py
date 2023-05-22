@@ -44,7 +44,6 @@ source_noise_pairs: List[Tuple[int, str, str, str, float, float, float, SoundSou
 source_noise_pairs = []
 for src in sources:
     type, name = src
-    # calculate decay so the noise is created accordingly
     real_amplitude = 0.0
     amp_factor = 1.0
     if type == "pure":
@@ -55,31 +54,33 @@ for src in sources:
         amp_factor = amplitude / max_amp
         real_amplitude = max_amp * amp_factor
     for source_dist in source_dists:
-        expected_signal = real_amplitude * (math.e ** (-decay_rate * source_dist))
-        noise_amplitude = math.sqrt(expected_signal**2/(10**(snr/20)))
-        print(f'{name} {snr} src amp {real_amplitude} expected signal {expected_signal} noise amp {noise_amplitude}')
-        source_noise_pairs.append((snr, "white", name, type, source_dist, real_amplitude, amp_factor, WhiteNoiseSoundSource(sample_rate, noise_amplitude)))
+        #expected_signal = real_amplitude * (math.e ** (-decay_rate * source_dist))
+        #noise_amplitude = math.sqrt(expected_signal**2/(10**(snr/20)))
+        #print(f'{name} {snr} src amp {real_amplitude} expected signal {expected_signal} noise amp {noise_amplitude}')
+        source_noise_pairs.append((snr, "white", name, type, source_dist, real_amplitude, amp_factor))
 
 # Test for each sample, noise source and direction
 # Repeating 4 times to accomodate for noise randomness
 for sound_noise, dir in itertools.product(source_noise_pairs, source_dirs):
     for i in range(4):
-        snr, noise_type, sound_name, src_type, source_dist, src_amplitude, amp_factor, noise_source = sound_noise # unpack tuple
+        snr, noise_type, sound_name, src_type, source_dist, src_amplitude, amp_factor = sound_noise # unpack tuple
         # Reload source every test
         if src_type == "pure":
             freq = int(sound_name[:-2])
             sound_source = SineWaveSoundSource(sample_rate, src_amplitude, freq)
+            sim_samples = int(sim_duration*sample_rate)
         else:
             sound_source = load_sample(sound_name, amp_factor)
+            sim_samples = len(sound_source.samples)
         print(''); print(f'{repr(sound_source)} attempt {i} {source_dist}m {noise_type} noise {snr}dB {dir}deg')
 
-        # Microphone setup (equilateral, 10cm side, no noise)
+        # Microphone setup (equilateral, 10cm side)
         mic_tri_side = 0.1
-        mic1 = NoisyMicrophone(noise_source, sample_rate)
+        mic1 = NoisyMicrophone(WhiteNoiseSoundSource(sample_rate), sample_rate, snr)
         mic1.position[0]=mic_tri_side/2
-        mic2 = NoisyMicrophone(noise_source, sample_rate)
+        mic2 = NoisyMicrophone(WhiteNoiseSoundSource(sample_rate), sample_rate, snr)
         mic2.position[0]=-mic_tri_side/2
-        mic3 = NoisyMicrophone(noise_source, sample_rate)
+        mic3 = NoisyMicrophone(WhiteNoiseSoundSource(sample_rate), sample_rate, snr)
         mic3.position[1]=mic_tri_side*sqrt(3)/2
         #mic4 = Microphone(sample_rate)
 
@@ -93,7 +94,7 @@ for sound_noise, dir in itertools.product(source_noise_pairs, source_dirs):
         # Add sources and microphones to the simulation environment and run simulation
         sound_source.position[0] = source_dist * cos(radians(dir))
         sound_source.position[1] = source_dist * sin(radians(dir))
-        env = SoundEnvironment(sample_rate, int(sim_duration*sample_rate), decay_rate=decay_rate)
+        env = SoundEnvironment(sample_rate, sim_samples, decay_rate=decay_rate)
         env.add_microphone(mic1)
         env.add_microphone(mic2)
         env.add_microphone(mic3)

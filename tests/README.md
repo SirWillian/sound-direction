@@ -62,10 +62,13 @@ Each microphone had it's own internal noise source
   - Varying between 1000Hz and 2000Hz
   - 0.1 amplitude
   - 5m distance
-  - Directions within [45, 53] degree range, with 1° steps
-- White and pink noise with SNR varying between -20dB, 0dB and 20dB
+  - Direction fixed on 47°
+    - Reduced test time
+- White and pink noise with SNR varying between -60dB, -40dB, -20dB, 0dB, 20dB, 40dB and 60dB
+  - Repeated 4 times per noise source due to the random nature of noise
+  - Fast (0.125s) and slow (1s) SNR windows
 - Decay rate 0.5
-- 1s detection window
+- 1.5s detection window
 
 ## **mic-noise-sample-tests**
 Tests sounds coming from a set direction while varying source samples and noise parameters, keeping other variables fixed
@@ -78,8 +81,9 @@ Each microphone had it's own internal noise source
   - 5m distance
   - Direction fixed on 47°
     - Reduced test time
-- White and pink noise with SNR varying between -20dB, 0dB, 20dB, 40dB and 60dB
+- White and pink noise with SNR varying between -60dB, -40dB, -20dB, 0dB, 20dB, 40dB and 60dB
   - Repeated 4 times per noise source due to the random nature of noise
+  - Fast SNR window
 - Decay rate 0.5
 - 1.5s detection window
 
@@ -95,6 +99,7 @@ Each microphone had it's own internal noise source
   - Direction fixed on 30°
 - White noise with 20dB SNR
   - Repeated 4 times per noise source due to the random nature of noise
+  - Fast SNR window
 - Decay rate 0.5
 - 1.5s detection window
 
@@ -110,6 +115,7 @@ Each microphone had it's own internal noise source
   - Direction fixed on 30°
 - White noise with 20dB SNR
   - Repeated 4 times per noise source due to the random nature of noise
+  - Fast SNR window
 - Decay rate 0.5
 - 1.5s detection window
 
@@ -139,6 +145,7 @@ Each microphone had it's own internal noise source
   - Direction fixed on 30°
 - White noise with 20dB SNR
   - Repeated 4 times per noise source due to the random nature of noise
+  - Fast SNR window
 - Decay rate 0.5
 - Detection window varying between 0.1s, 0.25s, 0.5s, 1.0s and 1.5s
 
@@ -154,6 +161,7 @@ Each microphone had it's own internal noise source
   - Directions within [45, 53] degree range, with 1° steps
 - White noise with 20dB SNR
   - Repeated 4 times per noise source due to the random nature of noise
+  - Fast SNR window
 - Decay rate 0.5
 - 1.5s detection window
 
@@ -161,15 +169,16 @@ Each microphone had it's own internal noise source
 Tests sounds coming from a few directions while varying source types and the size of the microphone triangle, keeping other variables fixed
 Each microphone had it's own internal noise source
 - Isosceles mic setup
-  - Triangle sides varying between 1cm, 5cm, 10cm, 15cm and 20cm
+  - Triangle sides varying between 1cm, 5cm, 10cm, 15cm, 20cm and 30cm
   - 120° obtuse angle
 - Pure frequency and sample sound sources
-  - Varying between 1000Hz sine wave, and glass breaking
-  - Varying amplitude
+  - Varying between 2000Hz sine wave, 5000Hz sine wave, glass breaking and stepping on a tree branch
+  - 0.1 amplitude
   - 5m distance
   - Directions within [45, 53] degree range, with 1° steps
 - White noise with 20dB SNR
-  - Repeated 4 times per noise source due to the random nature of noise
+  - Repeated 3 times per noise source due to the random nature of noise
+  - Fast SNR window
 - Decay rate 0.5
 - 1.5s detection window
 

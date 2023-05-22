@@ -34,6 +34,7 @@ detection_windows = [0.1, 0.25, 0.5, 1.0, 1.5] # seconds
 
 ## Source setup
 sources = [("pure", "1000Hz"),("sample", "glass-10khz"),("sample", "branches-10khz"),("sample", "gymball-10khz")]
+#sources = [("sample", "gymball-10khz")]
 
 # Test for each source and direction
 for src, detection_window in itertools.product(sources, detection_windows):
@@ -49,18 +50,17 @@ for src, detection_window in itertools.product(sources, detection_windows):
             sound_source = load_sample(sound_name)
             src_amplitude = abs(max(sound_source.samples, key=abs))
             sim_samples = len(sound_source.samples)
-        expected_signal = src_amplitude * (math.e ** (-decay_rate * source_dist))
-        noise_amplitude = math.sqrt(expected_signal**2/(10**(snr/20)))
-        noise_source = WhiteNoiseSoundSource(sample_rate, noise_amplitude)
+        #expected_signal = src_amplitude * (math.e ** (-decay_rate * source_dist))
+        #noise_amplitude = math.sqrt(expected_signal**2/(10**(snr/20)))
         print(''); print(f'{repr(sound_source)} attempt {i} {source_dist}m white noise {snr}dB {source_dir}deg {detection_window}s window')
 
         # Microphone setup (equilateral, 10cm side, no noise)
         mic_tri_side = 0.1
-        mic1 = NoisyMicrophone(noise_source, sample_rate)
+        mic1 = NoisyMicrophone(WhiteNoiseSoundSource(sample_rate), sample_rate, snr)
         mic1.position[0]=mic_tri_side/2
-        mic2 = NoisyMicrophone(noise_source, sample_rate)
+        mic2 = NoisyMicrophone(WhiteNoiseSoundSource(sample_rate), sample_rate, snr)
         mic2.position[0]=-mic_tri_side/2
-        mic3 = NoisyMicrophone(noise_source, sample_rate)
+        mic3 = NoisyMicrophone(WhiteNoiseSoundSource(sample_rate), sample_rate, snr)
         mic3.position[1]=mic_tri_side*sqrt(3)/2
         #mic4 = Microphone(sample_rate)
 
