@@ -20,3 +20,7 @@ class SoundElement:
 
     def get_sample_count(self):
         return len(self.samples)
+    
+    # Clean-up post simulation. Do nothing by default
+    def post_simulation(self):
+        pass

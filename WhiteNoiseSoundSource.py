@@ -3,7 +3,7 @@ from GeneratorSoundSource import GeneratorSoundSource
 
 
 class WhiteNoiseSoundSource(GeneratorSoundSource):
-    def __init__(self, sample_rate, amplitude=1):
+    def __init__(self, sample_rate, amplitude=1.0):
         self.amplitude = amplitude
 
         def generator_function(x):

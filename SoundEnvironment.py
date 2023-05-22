@@ -80,3 +80,9 @@ class SoundEnvironment:
                 combined_samples = min(max(combined_samples, -1.0), 1.0)
                 mic.add_sample(combined_samples)
             self.simulated_samples += 1
+        
+        # Finished simulating. Call post_simulation on all elements
+        for mic in self.microphones:
+            mic.post_simulation()
+        for source in self.sources:
+            source.post_simulation()
